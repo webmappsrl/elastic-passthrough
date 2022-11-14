@@ -1,14 +1,15 @@
 version: "3.7"
 
 services:
-  docs:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: dev
+  elastic-passtrough:
+    image: elastic-passtrough:${BUILD}
     container_name: 'elastic-passtrough'
     restart: 'always'
     ports:
-      - 127.0.0.1:3000:3000
-    volumes:
-      - ./:/app
+      - 127.0.0.1:${PORT}:3000
+    networks:
+      - net
+networks:
+  net:
+  external:
+    name: elastic-passtrough_net
