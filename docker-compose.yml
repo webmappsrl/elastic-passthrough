@@ -10,9 +10,5 @@ services:
     restart: 'always'
     ports:
       - 127.0.0.1:3000:3000
-    networks:
-      - net
-networks:
-  net:
-  external:
-    name: elastic-passtrough_net
+    volumes:
+      - ./:/app
