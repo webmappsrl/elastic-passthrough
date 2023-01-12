@@ -14,7 +14,7 @@ app.get('/search', (req, resMain) => {
     const search = req.query.query != undefined ? req.query.query : '' || '';
     const layer = req.query.layer || null;
     // var hostName = `https://elastic.webmapp.it/geohub_app_${geoHubId}/_search/`;
-    var hostName = `http://127.0.0.1:3000/geohub_app_${geoHubId}/_search/`;
+    var hostName = `http://127.0.0.1:9200/geohub_app_${geoHubId}/_search/`;
     var auth = 'Basic Zm9yZ2U6MWIwVlVKeFJGeGVPdXBralBlaWU='
     const method = 'POST'
     let size = 20000;
