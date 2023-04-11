@@ -54,6 +54,13 @@ app.get('/search', (req, resMain) => {
         _source: {
             excludes: ['geometry'],
         },
+        "sort": [
+            {
+              "name.keyword": {
+                "order": "asc"
+              }
+            }
+        ],
         query,
         size
     }
