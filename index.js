@@ -54,10 +54,10 @@ app.get('/search', (req, resMain) => {
         _source: {
             excludes: ['geometry'],
         },
-        "sort": [
+        sort: [
             {
-              "name.keyword": {
-                "order": "asc"
+              name: {
+                order: "asc"
               }
             }
         ],
