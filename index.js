@@ -56,7 +56,7 @@ app.get('/search', (req, resMain) => {
         },
         sort: [
             {
-              name: {
+              "name.keyword": {
                 order: "asc"
               }
             }
