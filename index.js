@@ -2,8 +2,8 @@ const app = require("express")();
 const request = require("request");
 const cors = require("cors");
 app.use(cors());
-// const BASE_URL = "https://elastic.webmapp.it";
-const BASE_URL = "http://127.0.0.1:9200";
+const BASE_URL = "https://elastic.webmapp.it";
+// const BASE_URL = "http://127.0.0.1:9200";
 const PORT = process.env.PORT || 3000;
 const method = "POST";
 const auth = "Basic Zm9yZ2U6MWIwVlVKeFJGeGVPdXBralBlaWU=";
@@ -23,7 +23,10 @@ app.get("/", function (req, res) {
 
 app.get("/search", (req, resMain) => {
   const geoHubId = req.query.id || "3";
-  const search = req.query.query != undefined ? req.query.query : "" || "";
+  const search =
+    req.query.query != undefined
+      ? req.query.query.replace("%20", " ")
+      : "" || "";
   const layer = req.query.layer || null;
   const activities = stringToArray(req.query.activities || null);
   var hostName = getHost(geoHubId);
@@ -32,6 +35,7 @@ app.get("/search", (req, resMain) => {
       query_string: {
         fields: ["name", "from", "to", "ref"],
         query: `*${search}*`,
+        default_operator: "and",
       },
     },
   ];
