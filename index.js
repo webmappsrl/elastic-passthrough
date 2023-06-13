@@ -2,8 +2,8 @@ const app = require("express")();
 const request = require("request");
 const cors = require("cors");
 app.use(cors());
-const BASE_URL = "https://elastic.webmapp.it";
-// const BASE_URL = "http://127.0.0.1:9200";
+// const BASE_URL = "https://elastic.webmapp.it";
+const BASE_URL = "http://127.0.0.1:9200";
 const PORT = process.env.PORT || 3000;
 const method = "POST";
 const auth = "Basic Zm9yZ2U6MWIwVlVKeFJGeGVPdXBralBlaWU=";
@@ -33,9 +33,9 @@ app.get("/search", (req, resMain) => {
   let must = [
     {
       query_string: {
-        fields: ["name", "from", "to", "ref"],
+        fields: ["name", "from", "to", "ref", "searchable"],
         query: `*${search}*`,
-        default_operator: "and",
+        default_operator: "or",
       },
     },
   ];
