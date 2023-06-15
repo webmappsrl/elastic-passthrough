@@ -1,5 +1,6 @@
 const app = require("express")();
 const request = require("request");
+const url = require("url");
 const cors = require("cors");
 app.use(cors());
 // const BASE_URL = "https://elastic.webmapp.it";
@@ -28,7 +29,7 @@ app.get("/search", (req, resMain) => {
       ? req.query.query.replace("%20", " ")
       : "" || "";
   const layer = req.query.layer || null;
-  const activities = stringToArray(req.query.activities || null);
+  const filters = JSON.parse(req.query.filters || null);
   var hostName = getHost(geoHubId);
   let must = [
     {
@@ -41,7 +42,7 @@ app.get("/search", (req, resMain) => {
   ];
 
   let size = 20000;
-
+  let filter = [];
   let query = {
     bool: {
       must,
@@ -51,17 +52,38 @@ app.get("/search", (req, resMain) => {
     must.push({ term: { layers: layer } });
     size = 200;
   }
-  if (activities != null) {
+  if (filters != null) {
     must = [
       ...must,
-      ...activities.map((activity) => ({
-        term: { "activities.keyword": activity },
-      })),
+      ...filters
+        .filter((a) => a.taxonomy)
+        .map((activity) => {
+          if (activity.taxonomy != null) {
+            if (activity.taxonomy === "activity") {
+              return {
+                term: { "activities.keyword": activity.identifier },
+              };
+            }
+          }
+        }),
     ];
+
+    filters
+      .filter((a) => a.min || a.max)
+      .forEach((activity) => {
+        let range = {};
+        let key = `properties.${activity.identifier}`;
+        range[key] = { gte: activity.min, lte: activity.max };
+        filter.push({
+          range,
+        });
+      });
   }
+
   query = {
     bool: {
       must,
+      filter,
     },
   };
   console.log(query);
