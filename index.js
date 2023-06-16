@@ -48,7 +48,6 @@ app.get("/search", (req, resMain) => {
       must,
     },
   };
-  let aggs = {};
   if (layer != null) {
     must.push({ term: { layers: layer } });
     size = 200;
@@ -103,16 +102,34 @@ app.get("/search", (req, resMain) => {
     query,
     size,
     aggs: {
-      activities_count: {
-        terms: {
-          field: "activities.keyword",
-          size: 10,
+      activities: {
+        filter: {
+          exists: {
+            field: "activities.keyword",
+          },
+        },
+        aggs: {
+          count: {
+            terms: {
+              field: "activities.keyword",
+              size: 10,
+            },
+          },
         },
       },
-      themes_count: {
-        terms: {
-          field: "themes.keyword",
-          size: 10,
+      themes: {
+        filter: {
+          exists: {
+            field: "themes.keyword",
+          },
+        },
+        aggs: {
+          count: {
+            terms: {
+              field: "themes.keyword",
+              size: 10,
+            },
+          },
         },
       },
     },
