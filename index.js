@@ -29,7 +29,7 @@ app.get("/search", (req, resMain) => {
       ? req.query.query.replace("%20", " ")
       : "" || "";
   const layer = req.query.layer || null;
-  const filters = JSON.parse(req.query.filters || []);
+  const filters = req?.query?.filters ? JSON.parse(req.query.filters) : [];
   var hostName = getHost(geoHubId);
   let must = [
     {
