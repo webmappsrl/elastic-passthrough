@@ -3,8 +3,8 @@ const request = require("request");
 const url = require("url");
 const cors = require("cors");
 app.use(cors());
-// const BASE_URL = "https://elastic.webmapp.it";
-const BASE_URL = "http://127.0.0.1:9200";
+const BASE_URL = "https://elastic.webmapp.it";
+// const BASE_URL = "http://127.0.0.1:9200";
 const PORT = process.env.PORT || 3000;
 const method = "POST";
 const auth = "Basic Zm9yZ2U6MWIwVlVKeFJGeGVPdXBralBlaWU=";
@@ -29,7 +29,7 @@ app.get("/search", (req, resMain) => {
       ? req.query.query.replace("%20", " ")
       : "" || "";
   const layer = req.query.layer || null;
-  const filters = req?.query?.filters ? JSON.parse(req.query.filters) : [];
+  const filters = JSON.parse(req.query.filters || null);
   var hostName = getHost(geoHubId);
   let must = [
     {
@@ -69,15 +69,15 @@ app.get("/search", (req, resMain) => {
         }),
     ];
 
-    filters
+    filter = filters
       .filter((a) => a.min || a.max)
-      .forEach((filter) => {
+      .map((filter) => {
         let range = {};
         let key = `properties.${filter.identifier}`;
         range[key] = { gte: filter.min, lte: filter.max };
-        filter.push({
+        return {
           range,
-        });
+        };
       });
   }
 
