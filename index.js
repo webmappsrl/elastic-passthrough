@@ -100,6 +100,14 @@ app.get("/search", (req, resMain) => {
     ],
     query,
     size,
+    aggs: {
+      activities_count: {
+        terms: {
+          field: "activities.keyword",
+          size: 10,
+        },
+      },
+    },
   };
   request(
     {
