@@ -57,23 +57,24 @@ app.get("/search", (req, resMain) => {
       ...must,
       ...filters
         .filter((a) => a.taxonomy)
-        .map((activity) => {
-          if (activity.taxonomy != null) {
-            if (activity.taxonomy === "activity") {
-              return {
-                term: { "activities.keyword": activity.identifier },
-              };
-            }
+        .map((filter) => {
+          if (filter.taxonomy != null) {
+            let term = {};
+            let key = `${filter.taxonomy}.keyword`;
+            term[key] = filter.identifier;
+            return {
+              term,
+            };
           }
         }),
     ];
 
     filters
       .filter((a) => a.min || a.max)
-      .forEach((activity) => {
+      .forEach((filter) => {
         let range = {};
-        let key = `properties.${activity.identifier}`;
-        range[key] = { gte: activity.min, lte: activity.max };
+        let key = `properties.${filter.identifier}`;
+        range[key] = { gte: filter.min, lte: filter.max };
         filter.push({
           range,
         });
