@@ -3,8 +3,8 @@ const request = require("request");
 const url = require("url");
 const cors = require("cors");
 app.use(cors());
-// const BASE_URL = "https://elastic.webmapp.it";
-const BASE_URL = "http://127.0.0.1:9200";
+const BASE_URL = "https://elastic.webmapp.it";
+// const BASE_URL = "http://127.0.0.1:9200";
 const PORT = process.env.PORT || 3000;
 const method = "POST";
 const auth = "Basic Zm9yZ2U6MWIwVlVKeFJGeGVPdXBralBlaWU=";
@@ -48,6 +48,7 @@ app.get("/search", (req, resMain) => {
       must,
     },
   };
+  let aggs = {};
   if (layer != null) {
     must.push({ term: { layers: layer } });
     size = 200;
@@ -105,6 +106,12 @@ app.get("/search", (req, resMain) => {
       activities_count: {
         terms: {
           field: "activities.keyword",
+          size: 10,
+        },
+      },
+      themes_count: {
+        terms: {
+          field: "themes.keyword",
           size: 10,
         },
       },
