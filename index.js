@@ -41,7 +41,7 @@ app.get("/search", (req, resMain) => {
     },
   ];
 
-  let size = 20000;
+  let size = 1000;
   let filter = [];
   let query = {
     bool: {
