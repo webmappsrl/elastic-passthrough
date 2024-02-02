@@ -25,6 +25,9 @@ app.get("/", function (req, res) {
 });
 
 app.get("/search", (req, resMain) => {
+  console.log("sono search");
+  console.log(token);
+  console.log("---");
   const geoHubId = req.query.id || "3";
   const search =
     req.query.query != undefined
