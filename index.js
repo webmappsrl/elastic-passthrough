@@ -1,14 +1,16 @@
+const dotenv = require("dotenv");
 const app = require("express")();
 const request = require("request");
-const url = require("url");
 const cors = require("cors");
 app.use(cors());
 // const BASE_URL = "https://elastic.webmapp.it";
 const BASE_URL = "http://127.0.0.1:9200";
 const PORT = process.env.PORT || 3000;
 const method = "POST";
-const auth = "Basic Zm9yZ2U6MWIwVlVKeFJGeGVPdXBralBlaWU=";
-
+const token = process.env["TOKEN"];
+const Authorization = `Basic ${token}`;
+// Carica le variabili d'ambiente dal file .env
+dotenv.config();
 getHost = (id = 3) => {
   return `${BASE_URL}/geohub_app_${id}/_search/`;
 };
@@ -34,7 +36,7 @@ app.get("/search", (req, resMain) => {
   let must = [
     {
       query_string: {
-        fields: ["name", "from", "to", "ref", "searchable"],
+        fields: ["searchable"],
         query: `*${search}*`,
         default_operator: "or",
       },
@@ -134,11 +136,12 @@ app.get("/search", (req, resMain) => {
       },
     },
   };
+  console.log(Authorization);
   request(
     {
       url: hostName,
       headers: {
-        Authorization: auth,
+        Authorization,
       },
       method,
       body,
