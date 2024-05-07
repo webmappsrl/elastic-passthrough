@@ -41,7 +41,7 @@ app.get("/search", (req, resMain) => {
       query_string: {
         fields: ["searchable"],
         query: `*${search}*`,
-        default_operator: "or",
+        default_operator: "and",
       },
     },
   ];
@@ -98,6 +98,11 @@ app.get("/search", (req, resMain) => {
       excludes: ["geometry"],
     },
     sort: [
+      {
+        _score: {
+          order: "desc",
+        },
+      },
       {
         "name.keyword": {
           order: "asc",
