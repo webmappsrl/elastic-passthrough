@@ -164,16 +164,16 @@ app.get("/search", (req, resMain) => {
   );
 });
 app.get("/track", (req, resMain) => {
-  const geoHubId = req.query.geohub || "3";
-  const trackId = req.query.track || "3";
+  const app = req.query.app || "geohub_app_3";
+  const trackId = req.query.id || "152";
   const method = "GET";
-  var hostName = `${BASE_URL}/geohub_app_${geoHubId}/_doc/${trackId}`;
+  var hostName = `${BASE_URL}/${app}/_doc/${trackId}`;
 
   request(
     {
       url: hostName,
       headers: {
-        Authorization: auth,
+        Authorization,
       },
       method,
       json: true,
@@ -184,6 +184,8 @@ app.get("/track", (req, resMain) => {
       }
       if (body != null && body._source != null) {
         resMain.send(body._source);
+      } else {
+        resMain.send("Track not found");
       }
     }
   );
