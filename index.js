@@ -5,25 +5,25 @@ const cors = require("cors");
 dotenv.config();
 app.use(cors());
 // const BASE_URL = "https://elastic.webmapp.it";
-const BASE_URL = "http://127.0.0.1:9200";
+const BASE_URL = "http://es01:9200";
 const PORT = process.env.PORT || 3000;
 const method = "POST";
-const token = process.env["TOKEN"];
+const username = process.env["USERNAME"];
+const password = process.env["PASSWORD"];
+const token = Buffer.from(`${username}:${password}`).toString("base64");
+
 const Authorization = `Basic ${token}`;
 // Carica le variabili d'ambiente dal file .env
 getHost = (id = 3) => {
   return `${BASE_URL}/geohub_app_${id}/_search/`;
 };
-
-function stringToArray(value) {
-  if (value == null) return null;
-  return value.split(",");
-}
+getV2Host = (app = `geohub_3`) => {
+  return `${BASE_URL}/${app}/_search/`;
+};
 
 app.get("/", function (req, res) {
   res.send("Hello World!");
 });
-
 app.get("/search", (req, resMain) => {
   console.log("sono search");
   console.log(token);
@@ -144,7 +144,6 @@ app.get("/search", (req, resMain) => {
       },
     },
   };
-  console.log(Authorization);
   request(
     {
       url: hostName,
@@ -159,10 +158,62 @@ app.get("/search", (req, resMain) => {
       if (err) {
         return console.log(err);
       }
-      resMain.send(body);
+      if (body.error != null) {
+        const body = _getV2Body(req, "v2");
+        // Rimappatura del campo _source con il contenuto di doc
+
+        request(
+          {
+            url: hostName,
+            headers: {
+              Authorization,
+            },
+            method,
+            body,
+            json: true,
+          },
+          (err, res, body) => {
+            body.hits.hits.forEach((hit) => {
+              if (hit._source && hit._source.doc) {
+                hit._source = hit._source.doc;
+              }
+            });
+            resMain.send(body);
+          }
+        );
+      } else {
+        resMain.send(body);
+      }
     }
   );
 });
+app.get("/v2/search", (req, resMain) => {
+  const body = _getV2Body(req);
+  request(
+    {
+      url: hostName,
+      headers: {
+        Authorization,
+      },
+      method,
+      body,
+      json: true,
+    },
+    (err, res, body) => {
+      if (err) {
+        return console.log(err);
+      }
+      const hits = [];
+      body.hits.hits.forEach((hit) => {
+        if (hit._source && hit._source.doc) {
+          hits.push(hit._source.doc);
+        }
+      });
+      resMain.send(hits);
+    }
+  );
+});
+
 app.get("/track", (req, resMain) => {
   const app = req.query.app || "geohub_app_3";
   const trackId = req.query.id || "152";
@@ -190,4 +241,108 @@ app.get("/track", (req, resMain) => {
     }
   );
 });
-app.listen(PORT);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
+_getV2Body = (req, v) => {
+  console.log("Sono in /search");
+
+  const app = req.query.app || "geohub_3";
+  const search = req.query.query ? req.query.query.replace("%20", " ") : "";
+  const layer = req.query.layer || null;
+  const filters = JSON.parse(req.query.filters || "[]"); // Gestione dei filtri
+
+  const hostName = v === "v2" ? getV2Host(app) : getHost(app);
+  let must = [];
+
+  // Aggiungi la query di ricerca con wildcard solo se il parametro di ricerca è fornito
+  if (search) {
+    must.push({
+      query_string: {
+        query: `*${search}*`,
+        fields: ["doc.searchable"],
+        default_operator: "and",
+      },
+    });
+  }
+  // Aggiungi filtro per layer, se fornito
+  if (layer) {
+    must.push({ term: { "doc.layers": layer } });
+  }
+
+  // Aggiungi eventuali filtri per taxonomy
+  filters.forEach((filter) => {
+    if (filter.taxonomy) {
+      let term = {};
+      let key = `doc.${filter.taxonomy}.keyword`;
+      term[key] = filter.identifier;
+      must.push({ term });
+    }
+  });
+
+  let filter = [];
+
+  // Aggiungi eventuali filtri di range
+  filters.forEach((f) => {
+    if (f.min || f.max) {
+      let range = {};
+      let key = `doc.${f.identifier}`;
+      range[key] = {};
+      if (f.min) range[key].gte = f.min;
+      if (f.max) range[key].lte = f.max;
+      filter.push({ range });
+    }
+  });
+
+  const query = {
+    bool: {
+      must,
+      filter,
+    },
+  };
+
+  return {
+    _source: {
+      excludes: ["geometry"],
+    },
+    sort: [
+      { _score: { order: "desc" } },
+      { "doc.name.keyword": { order: "asc" } },
+    ],
+    query,
+    size: layer ? 200 : 1000,
+    aggs: {
+      activities: {
+        filter: {
+          exists: {
+            field: "doc.activities.keyword",
+          },
+        },
+        aggs: {
+          count: {
+            terms: {
+              field: "doc.activities.keyword",
+              size: 10,
+            },
+          },
+        },
+      },
+      themes: {
+        filter: {
+          exists: {
+            field: "doc.themes.keyword",
+          },
+        },
+        aggs: {
+          count: {
+            terms: {
+              field: "doc.themes.keyword",
+              size: 10,
+            },
+          },
+        },
+      },
+    },
+  };
+};
