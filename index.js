@@ -189,6 +189,10 @@ app.get("/search", (req, resMain) => {
 });
 app.get("/v2/search", (req, resMain) => {
   const body = _getV2Body(req);
+  const app = req.query.app || "geohub_3";
+
+  const v = "v2";
+  const hostName = v === "v2" ? getV2Host(app) : getHost(app);
   request(
     {
       url: hostName,
@@ -201,6 +205,7 @@ app.get("/v2/search", (req, resMain) => {
     },
     (err, res, body) => {
       if (err) {
+        resMain.send(err.message);
         return console.log(err);
       }
       const hits = [];
@@ -248,12 +253,10 @@ app.listen(PORT, "0.0.0.0", () => {
 _getV2Body = (req, v) => {
   console.log("Sono in /search");
 
-  const app = req.query.app || "geohub_3";
   const search = req.query.query ? req.query.query.replace("%20", " ") : "";
   const layer = req.query.layer || null;
   const filters = JSON.parse(req.query.filters || "[]"); // Gestione dei filtri
 
-  const hostName = v === "v2" ? getV2Host(app) : getHost(app);
   let must = [];
 
   // Aggiungi la query di ricerca con wildcard solo se il parametro di ricerca è fornito
