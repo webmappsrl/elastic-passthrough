@@ -214,7 +214,10 @@ app.get("/v2/search", (req, resMain) => {
           hits.push(hit._source.doc);
         }
       });
-      resMain.send(hits);
+      resMain.send({
+        hits,
+        aggregations: body.aggregations,
+      });
     }
   );
 });
