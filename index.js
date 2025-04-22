@@ -259,6 +259,7 @@ _getV2Body = (req, v) => {
   const search = req.query.query ? req.query.query.replace("%20", " ") : "";
   const layer = req.query.layer || null;
   const filters = JSON.parse(req.query.filters || "[]"); // Gestione dei filtri
+  const ids = JSON.parse(req.query.ids || "[]");
 
   let must = [];
 
@@ -286,6 +287,11 @@ _getV2Body = (req, v) => {
       must.push({ term });
     }
   });
+
+  // Aggiungi eventuali filtri per id
+  if (ids.length > 0) {
+    must.push({ terms: { "doc.id": ids } });
+  }
 
   let filter = [];
 
