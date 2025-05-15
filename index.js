@@ -122,7 +122,7 @@ app.get("/search", (req, resMain) => {
           count: {
             terms: {
               field: "activities.keyword",
-              size: 10,
+              size: 20,
             },
           },
         },
@@ -137,7 +137,7 @@ app.get("/search", (req, resMain) => {
           count: {
             terms: {
               field: "themes.keyword",
-              size: 10,
+              size: 20,
             },
           },
         },
