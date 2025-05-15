@@ -335,7 +335,7 @@ _getV2Body = (req, v) => {
           count: {
             terms: {
               field: "doc.activities.keyword",
-              size: 10,
+              size: 20,
             },
           },
         },
@@ -350,7 +350,7 @@ _getV2Body = (req, v) => {
           count: {
             terms: {
               field: "doc.themes.keyword",
-              size: 10,
+              size: 20,
             },
           },
         },
