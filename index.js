@@ -152,7 +152,7 @@ app.get("/search", (req, resMain) => {
           count: {
             terms: {
               field: "layers.keyword",
-              size: 20,
+              size: 120,
             },
           },
         },
