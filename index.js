@@ -142,6 +142,21 @@ app.get("/search", (req, resMain) => {
           },
         },
       },
+      layers: {
+        filter: {
+          exists: {
+            field: "layers.keyword",
+          },
+        },
+        aggs: {
+          count: {
+            terms: {
+              field: "layers.keyword",
+              size: 20,
+            },
+          },
+        },
+      },
     },
   };
   request(
@@ -173,6 +188,16 @@ app.get("/search", (req, resMain) => {
             json: true,
           },
           (err, res, body) => {
+            // Controllo se body e body.hits esistono
+            if (!body || !body.hits || !body.hits.hits) {
+              console.error("Risposta Elasticsearch non valida:", body);
+              resMain.status(500).send({
+                error: "Risposta non valida da Elasticsearch",
+                body: body
+              });
+              return;
+            }
+            
             body.hits.hits.forEach((hit) => {
               if (hit._source && hit._source.doc) {
                 hit._source = hit._source.doc;
@@ -208,6 +233,17 @@ app.get("/v2/search", (req, resMain) => {
         resMain.send(err.message);
         return console.log(err);
       }
+      
+      // Controllo se body e body.hits esistono
+      if (!body || !body.hits || !body.hits.hits) {
+        console.error("Risposta Elasticsearch non valida:", body);
+        resMain.status(500).send({
+          error: "Risposta non valida da Elasticsearch",
+          body: body
+        });
+        return;
+      }
+      
       const hits = [];
       body.hits.hits.forEach((hit) => {
         if (hit._source && hit._source.doc) {
@@ -351,6 +387,21 @@ _getV2Body = (req, v) => {
             terms: {
               field: "doc.themes.keyword",
               size: 20,
+            },
+          },
+        },
+      },
+      layers: {
+        filter: {
+          exists: {
+            field: "doc.layers",
+          },
+        },
+        aggs: {
+          count: {
+            terms: {
+              field: "doc.layers",
+              size: 50,
             },
           },
         },
