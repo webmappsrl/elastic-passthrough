@@ -152,7 +152,7 @@ app.get("/search", (req, resMain) => {
           count: {
             terms: {
               field: "layers.keyword",
-              size: 120,
+              size: 20,
             },
           },
         },
@@ -401,7 +401,7 @@ _getV2Body = (req, v) => {
           count: {
             terms: {
               field: "doc.layers",
-              size: 50,
+              size: 150,
             },
           },
         },
