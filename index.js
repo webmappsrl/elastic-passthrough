@@ -99,13 +99,15 @@ app.get("/search", (req, resMain) => {
     },
     sort: [
       {
-        _score: {
-          order: "desc",
+        "name.it.keyword": {
+          order: "asc",
+          missing: "_last",
         },
       },
       {
-        "name.keyword": {
+        "name.en.keyword": {
           order: "asc",
+          missing: "_last",
         },
       },
     ],
@@ -355,8 +357,18 @@ _getV2Body = (req, v) => {
       excludes: ["geometry"],
     },
     sort: [
-      { _score: { order: "desc" } },
-      { "doc.name.keyword": { order: "asc" } },
+      {
+        "doc.name.it.keyword": {
+          order: "asc",
+          missing: "_last",
+        },
+      },
+      {
+        "doc.name.en.keyword": {
+          order: "asc",
+          missing: "_last",
+        },
+      },
     ],
     query,
     size: layer ? 200 : 1000,
