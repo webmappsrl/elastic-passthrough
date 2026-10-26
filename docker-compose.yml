@@ -1,8 +1,46 @@
-version: '3'
+version: "3"
 services:
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.0
+    container_name: es01
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - 9200:9200
+    volumes:
+      - ${dockerVolumesPath}/elasticsearch/es01:/usr/share/elasticsearch/data
+    networks:
+      - net
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.12.0
+    container_name: kibana
+    restart: always
+    environment:
+      - ELASTICSEARCH_HOSTS=http://es01:9200
+    ports:
+      - 5601:5601
+    volumes:
+      - ./kibana.yml:/usr/share/kibana/config/kibana.yml
+    networks:
+      - net
   elastic-passtrough:
-    build: . 
+    build: .
     container_name: elastic-passtrough
     restart: always
-    network_mode: host
-
+    ports:
+      - "3000:3000"
+      - "9229:9229" # Porta per il debug
+    networks:
+      - net
+    depends_on:
+      - es01
+networks:
+  net:
+    driver: bridge

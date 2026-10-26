@@ -1,0 +1,68 @@
+# Stack di produzione: nodo Elasticsearch privato + passthrough.
+#
+# Differenze volute rispetto a docker-compose.yml (che resta l'ambiente di sviluppo):
+#  - il nodo Elastic non pubblica nessuna porta: lo raggiunge solo il passthrough,
+#    per nome di servizio, sulla rete interna;
+#  - i dati stanno su un volume Docker con nome, non nel layer del container;
+#  - il passthrough ascolta solo sull'interfaccia locale: davanti ci sta il reverse
+#    proxy della macchina, che termina il TLS;
+#  - niente Kibana.
+#
+# Credenziali: mai in questo file. Stanno in .env (non versionato), che il
+# passthrough riceve con env_file e il nodo legge per la password iniziale.
+#
+# Avvio:  docker compose -f compose.prod.yml up -d
+# Ticket: oc:8857
+
+services:
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.28
+    container_name: es01
+    restart: always
+    environment:
+      - node.name=es01
+      - cluster.name=geohub-elasticsearch
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?ELASTIC_PASSWORD non impostata nel .env}
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es01-data:/usr/share/elasticsearch/data
+    networks:
+      - elastic
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s -u elastic:$$ELASTIC_PASSWORD http://localhost:9200/_cluster/health | grep -qE '\"status\":\"(green|yellow)\"'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  elastic-passtrough:
+    build: .
+    container_name: elastic-passtrough
+    restart: always
+    env_file:
+      - .env
+    ports:
+      # Solo interfaccia locale: l'ingresso pubblico e' il vhost del reverse proxy.
+      - "127.0.0.1:3000:3000"
+    networks:
+      - elastic
+    depends_on:
+      es01:
+        condition: service_healthy
+
+volumes:
+  es01-data:
+
+networks:
+  elastic:
+    driver: bridge
