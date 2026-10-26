@@ -34,6 +34,9 @@ services:
     build: .
     container_name: elastic-passtrough
     restart: always
+    # Il debugger e' acceso solo qui, in sviluppo: l'immagine avvia node senza
+    # --inspect, perche' in produzione un debugger in ascolto e' un rischio.
+    command: ["node", "--inspect=0.0.0.0:9229", "index.js"]
     ports:
       - "3000:3000"
       - "9229:9229" # Porta per il debug
