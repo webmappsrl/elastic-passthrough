@@ -1,8 +1,8 @@
 # Stack di produzione: nodo Elasticsearch privato + passthrough.
 #
 # Differenze volute rispetto a docker-compose.yml (che resta l'ambiente di sviluppo):
-#  - il nodo Elastic non pubblica nessuna porta: lo raggiunge solo il passthrough,
-#    per nome di servizio, sulla rete interna;
+#  - il nodo Elastic si affaccia solo sul loopback della macchina: lo raggiungono
+#    il passthrough sulla rete interna e Geohub, che gira nativo sulla macchina;
 #  - i dati stanno su un volume Docker con nome, non nel layer del container;
 #  - il passthrough ascolta solo sull'interfaccia locale: davanti ci sta il reverse
 #    proxy della macchina, che termina il TLS;
@@ -33,6 +33,10 @@ services:
         hard: -1
     volumes:
       - es01-data:/usr/share/elasticsearch/data
+    ports:
+      # Solo loopback: serve a Geohub, che gira nativo sulla macchina e non
+      # sulla rete Docker. Da fuori la macchina il nodo resta invisibile.
+      - "127.0.0.1:9200:9200"
     networks:
       - elastic
     healthcheck:

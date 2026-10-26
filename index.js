@@ -102,12 +102,14 @@ app.get("/search", (req, resMain) => {
         "name.it.keyword": {
           order: "asc",
           missing: "_last",
+          unmapped_type: "keyword",
         },
       },
       {
         "name.en.keyword": {
           order: "asc",
           missing: "_last",
+          unmapped_type: "keyword",
         },
       },
     ],
@@ -361,12 +363,14 @@ _getV2Body = (req, v) => {
         "doc.name.it.keyword": {
           order: "asc",
           missing: "_last",
+          unmapped_type: "keyword",
         },
       },
       {
         "doc.name.en.keyword": {
           order: "asc",
           missing: "_last",
+          unmapped_type: "keyword",
         },
       },
     ],
